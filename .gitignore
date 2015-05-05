@@ -1,0 +1,8 @@
+.DS_Store
+
+# Ignore any data and history information from the R session
+.RData
+.Rhistory
+
+# Infore any text file, principally the main data file
+*.txt
