@@ -2,7 +2,7 @@ library(graphics)
 library(lubridate)
 
 # Read the full dataset into memory
-dat <- read.table('household_power_consumption.txt', header=TRUE, sep=";")
+dat <- read.table('household_power_consumption.txt', header=TRUE, sep=";", na.strings="?")
 
 # Use lubridate to convert the Date column from factor to date objects
 dat$Date <- dmy(dat$Date)
@@ -16,12 +16,14 @@ day2 <- ymd("2007-02-02")
 subset_to_plot <- subset(dat, Date == day1 | Date == day2)
 rm(dat)
 
-# For this plot, we need the measurements of
-sub_metering_1 <- as.numeric(as.character(subset_to_plot$Sub_metering_1))
-sub_metering_2 <- as.numeric(as.character(subset_to_plot$Sub_metering_2))
-sub_metering_3 <- as.numeric(as.character(subset_to_plot$Sub_metering_3))
+# For this plot, we need the columns corresponding to the 
+# 3 sub metering measurements.  We can get the names of 
+# columns using grep
+columns <- names(subset_to_plot)[grep("Sub_metering", names(subset_to_plot))]
 
-max_y <- max(sub_metering_1,sub_metering_2, sub_metering_3)
+# To set the y axis limits we need to know the maximum value in
+# the 3 series
+max_y <- max(subset_to_plot[columns])
 
 # Specify the PNG file and its size
 png(file="plot3.png",width=480,height=480)
@@ -35,21 +37,22 @@ par(bg=NA)
 # and a label for the y axis.
 plot(0,
      type="n",
-     xlim=c(1,length(sub_metering_1)),
+     xlim=c(1,nrow(subset_to_plot)),
      ylim=c(0,max_y),
      xaxt='n',
      xlab="",
      ylab="Energy sub metering")
 
-lines(sub_metering_1, col="black", type="l")
-lines(sub_metering_2, col="red", type="l")
-lines(sub_metering_3, col="blue", type="l")
+colors <- c("black","red", "blue")
+# Next we add a line for each 
+for (i in seq_along(columns)) { 
+  lines(subset_to_plot[columns[i]], col=colors[i], type="l")
+}
 
-legend_labels <- c("Sub_metering_1", "Sub_metering_2", "Sub_metering_3")
 legend("topright", 
-       legend_labels, 
+       columns, 
        lty=c(1,1), 
-       col=c("black","red", "blue"))
+       col=colors)
 
 # For labelling the x-axis we need the abbreviated weekdays
 # for our two dates plus the next day that marks the end of
@@ -63,10 +66,10 @@ x_labels <- c(weekdays(day1, abbreviate=TRUE),
 # Obviously, day1 starts at the 1st measurement,
 # day2 starts 1 measurement after the length of
 # day1 and the day3 tick will be the first after 
-# the complete dataset.
+# the complete dataset (nrows + 1).
 x_ticks <- c(1,
              sum(subset_to_plot$Date == day1)+1,
-             length(subset_to_plot$Date)+1)
+             nrow(subset_to_plot)+1)
 
 # To create our custom x-axis labels, we use the axis
 # command with our ticks and labels
