@@ -27,8 +27,10 @@ png(file="plot1.png",width=480,height=480)
 par(bg=NA)
 
 # Plot a histogram of Global Active Power
-plot1 <- hist(subset_to_plot$Global_active_power, 
-              col="red", nclass = 20, 
-              main="Global Active Power", 
-              xlab="Global Active Power (kilowatts)")
+hist(subset_to_plot$Global_active_power, 
+     col="red",
+     nclass = 20, 
+     main="Global Active Power",
+     xlab="Global Active Power (kilowatts)")
+
 dev.off()
